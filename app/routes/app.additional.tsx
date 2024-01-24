@@ -1,4 +1,5 @@
 import {
+  BlockStack,
   Box,
   Card,
   Layout,
@@ -6,7 +7,6 @@ import {
   List,
   Page,
   Text,
-  BlockStack,
 } from "@shopify/polaris";
 
 export default function AdditionalPage() {

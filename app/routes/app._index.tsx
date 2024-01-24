@@ -1,19 +1,8 @@
-import { useEffect } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useActionData, useNavigation, useSubmit } from "@remix-run/react";
-import {
-  Page,
-  Layout,
-  Text,
-  Card,
-  Button,
-  BlockStack,
-  Box,
-  List,
-  Link,
-  InlineStack,
-} from "@shopify/polaris";
+import { Button, Page, Text } from "@shopify/polaris";
+import { useEffect, useState } from "react";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -23,7 +12,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
+  const product = new admin.rest.resources.Product({ session: session });
+  product.id = id;
+  product.metafields = [
+    {
+      key: "new",
+      value: title,
+      type: "single_line_text_field",
+      namespace: "global",
+    },
+  ];
+  await product.save({
+    update: true,
+  });
   const color = ["Red", "Orange", "Yellow", "Green"][
     Math.floor(Math.random() * 4)
   ];
@@ -64,7 +66,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     product: responseJson.data?.productCreate?.product,
   });
 };
-
 export default function Index() {
   const nav = useNavigation();
   const actionData = useActionData<typeof action>();
@@ -83,14 +84,28 @@ export default function Index() {
   }, [productId]);
   const generateProduct = () => submit({}, { replace: true, method: "POST" });
 
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+
+  const selected = async () => {
+    const productDetails = await shopify.resourcePicker({
+      type: "product",
+    });
+    if (productDetails) {
+      setSelectedProduct(productDetails[0]);
+      console.log(productDetails[0]);
+    } else {
+      console.log("Picker was cancelled by the user");
+    }
+  };
+
   return (
     <Page>
-      <ui-title-bar title="Remix app template">
+      {/* <ui-title-bar title="Remix app template">
         <button variant="primary" onClick={generateProduct}>
           Generate a product
         </button>
-      </ui-title-bar>
-      <BlockStack gap="500">
+      </ui-title-bar> */}
+      {/* <BlockStack gap="500">
         <Layout>
           <Layout.Section>
             <Card>
@@ -275,7 +290,28 @@ export default function Index() {
             </BlockStack>
           </Layout.Section>
         </Layout>
-      </BlockStack>
+      </BlockStack> */}
+      <Text variant="headingXl" as="h2">
+        Welcome to product customizer
+      </Text>
+      {selectedProduct ? (
+        <>
+          {
+            <Text variant="headingLg" as="h4">
+              {selectedProduct.title}
+            </Text>
+          }
+        </>
+      ) : (
+        <Button
+          variant="primary"
+          onClick={() => {
+            selected();
+          }}
+        >
+          Choose you product
+        </Button>
+      )}
     </Page>
   );
 }

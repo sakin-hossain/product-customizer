@@ -1,0 +1,12 @@
+<h3>{{ product.title }}</h3>
+<p>{{ product.description }}</p>
+{% schema %}
+{
+  "name": "Product Customizer",
+  "target": "section",
+  "settings": [
+    { "type": "product", "id": "product", "label": "product", "autofill": true },
+    { "type": "color", "id": "color", "label": "Star Color", "default": "#000000" }
+  ]
+}
+{% endschema %}
