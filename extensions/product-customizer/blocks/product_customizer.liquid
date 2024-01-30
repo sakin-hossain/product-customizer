@@ -1,17 +1,45 @@
 {% style %}
   .title {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 600;
   }
   .desc {
     font-size: 16px;
   }
+  .color_list {
+    list-style: none;
+    padding: 0;
+    width: 400px;
+  }
+  .color_list li {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 10px;
+    display: inline-block;
+    cursor: pointer;
+  }
 {% endstyle %}
 
 <div>
-  <h3 class="title">{{ product.metafields.global.testing_pc }}</h3>
-  <p class="desc">{{ product.description }}</p>
+  {% assign colorOptions = product.metafields.caractere.product_customizer | json %}
+  <h3 id="caractere_title" class="title"></h3>
+  <ul id="caractere_colors_option" class="color_list"></ul>
 </div>
+
+<script>
+  const parsedData = JSON.parse({{ colorOptions }});
+  const colorsSection = document.getElementById("caractere_colors_option")
+  const titleSection = document.getElementById("caractere_title");
+
+  titleSection.textContent = parsedData.label;
+  const colors = parsedData.option.split(",");
+  colors.forEach(function(color){
+    let item = document.createElement('li');
+    item.style.backgroundColor = color;
+    colorsSection.appendChild(item);
+  });
+</script>
 
 {% schema %}
 {

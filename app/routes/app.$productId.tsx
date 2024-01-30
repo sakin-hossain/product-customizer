@@ -1,8 +1,16 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import { Button, Page, Text, TextField } from "@shopify/polaris";
+import {
+  Badge,
+  Button,
+  Card,
+  FormLayout,
+  Page,
+  TextField,
+} from "@shopify/polaris";
 import { useState } from "react";
+import MetaFieldList from "~/components/MetaFieldList";
 import { authenticate } from "~/shopify.server";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -12,7 +20,17 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     session: session,
     id: params.productId,
   });
-  return json({ productDetails });
+
+  const metaFieldList = await admin.rest.resources.Metafield.all({
+    session: session,
+    metafield: { owner_id: params.productId, owner_resource: "product" },
+  });
+
+  return json({
+    productDetails: productDetails,
+    metaFieldList: metaFieldList.data,
+    productId: params.productId,
+  });
 };
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -31,16 +49,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
   product.id = id;
   product.metafields = [
     {
-      key: "testing_pc",
+      key: "product_customizer",
       value: body,
       type: "single_line_text_field",
-      namespace: "global",
+      namespace: "caractere",
     },
   ];
   const response = await product.save({
     update: true,
   });
-  console.log(response, "res");
+
   if (response) {
     const data = response.json();
     console.log(data, "data");
@@ -50,38 +68,64 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 const ProductDetails = () => {
-  const { productDetails } = useLoaderData<typeof loader>();
+  const { productDetails, metaFieldList, productId } =
+    useLoaderData<typeof loader>();
 
+  const filteredMetaField: any = metaFieldList.filter(
+    (item: any) => item.namespace === "caractere"
+  );
+
+  console.log(filteredMetaField, "filteredMetaField");
   const [label, setLabel] = useState<string>("");
-  const [option, setOption] = useState<string>("");
+  const [option, setOption] = useState<any>("");
 
   const data = useActionData<typeof action>();
 
   return (
-    <Page>
-      {data?.msg && <p>{data?.msg}</p>}
-      <Text variant="headingXl" as="h2">
-        {productDetails.title}
-      </Text>
-      <Form method="post">
-        <TextField
-          id="label"
-          name="label"
-          label="label"
-          autoComplete="off"
-          value={label}
-          onChange={(value) => setLabel(value)}
-        />
-        <TextField
-          id="option"
-          name="option"
-          label="option"
-          autoComplete="off"
-          value={option}
-          onChange={(value) => setOption(value)}
-        />
-        <Button submit>Create Variant</Button>
-      </Form>
+    <Page
+      backAction={{ content: "Products", url: "/app" }}
+      title={productDetails.title}
+    >
+      {data?.msg && <Badge tone="success">{data?.msg}</Badge>}
+
+      <Card>
+        {filteredMetaField.map((item: any, index: number) => (
+          <MetaFieldList
+            item={item}
+            index={index}
+            key={index}
+            productId={productId}
+          />
+        ))}
+      </Card>
+      <div style={{ margin: "20px" }}></div>
+      <Card>
+        <Form method="post">
+          <FormLayout>
+            {/* <div style={{ marginBottom: "24px" }}> */}
+            <TextField
+              id="label"
+              name="label"
+              label="Label"
+              autoComplete="off"
+              value={label}
+              onChange={(value) => setLabel(value)}
+            />
+            <TextField
+              id="option"
+              name="option"
+              label="Option"
+              autoComplete="off"
+              value={option}
+              onChange={(value) => setOption(value)}
+            />
+            {/* </div> */}
+            <Button variant="primary" submit>
+              Create New Variant
+            </Button>
+          </FormLayout>
+        </Form>
+      </Card>
     </Page>
   );
 };
