@@ -1,31 +1,27 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useActionData, useNavigation, useSubmit } from "@remix-run/react";
+import {
+  useActionData,
+  useNavigate,
+  useNavigation,
+  useSubmit,
+} from "@remix-run/react";
 import { Button, Page, Text } from "@shopify/polaris";
 import { useEffect, useState } from "react";
+import indexStyles from "../routes/_index/style.css";
 import { authenticate } from "../shopify.server";
 
+export const links = () => [{ rel: "stylesheet", href: indexStyles }];
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  console.log("enter");
   await authenticate.admin(request);
 
   return null;
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
-  const product = new admin.rest.resources.Product({ session: session });
-  product.id = id;
-  product.metafields = [
-    {
-      key: "new",
-      value: title,
-      type: "single_line_text_field",
-      namespace: "global",
-    },
-  ];
-  await product.save({
-    update: true,
-  });
+  const { admin } = await authenticate.admin(request);
   const color = ["Red", "Orange", "Yellow", "Green"][
     Math.floor(Math.random() * 4)
   ];
@@ -66,10 +62,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     product: responseJson.data?.productCreate?.product,
   });
 };
+
 export default function Index() {
   const nav = useNavigation();
   const actionData = useActionData<typeof action>();
   const submit = useSubmit();
+
   const isLoading =
     ["loading", "submitting"].includes(nav.state) && nav.formMethod === "POST";
   const productId = actionData?.product?.id.replace(
@@ -85,14 +83,17 @@ export default function Index() {
   const generateProduct = () => submit({}, { replace: true, method: "POST" });
 
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-
+  const navigate = useNavigate();
   const selected = async () => {
     const productDetails = await shopify.resourcePicker({
       type: "product",
     });
     if (productDetails) {
       setSelectedProduct(productDetails[0]);
-      console.log(productDetails[0]);
+      const splitId = productDetails[0].id.split("/");
+      const id = splitId[4];
+      console.log(id, id);
+      navigate(`/app/${id}`);
     } else {
       console.log("Picker was cancelled by the user");
     }
@@ -295,22 +296,24 @@ export default function Index() {
         Welcome to product customizer
       </Text>
       {selectedProduct ? (
-        <>
+        <div className="product-button">
           {
             <Text variant="headingLg" as="h4">
               {selectedProduct.title}
             </Text>
           }
-        </>
+        </div>
       ) : (
-        <Button
-          variant="primary"
-          onClick={() => {
-            selected();
-          }}
-        >
-          Choose you product
-        </Button>
+        <div className="product-button">
+          <Button
+            variant="primary"
+            onClick={() => {
+              selected();
+            }}
+          >
+            Choose your product
+          </Button>
+        </div>
       )}
     </Page>
   );

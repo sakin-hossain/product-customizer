@@ -70,6 +70,10 @@ li {
   text-align: left;
 }
 
+.product-button {
+  margin: 24px 0;
+}
+
 @media only screen and (max-width: 50rem) {
   ul {
     display: block;

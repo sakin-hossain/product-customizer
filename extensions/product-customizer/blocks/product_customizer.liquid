@@ -1,12 +1,23 @@
-<h3>{{ product.title }}</h3>
-<p>{{ product.description }}</p>
+{% style %}
+  .title {
+    font-size: 24px;
+    font-weight: 600;
+  }
+  .desc {
+    font-size: 16px;
+  }
+{% endstyle %}
+
+<div>
+  <h3 class="title">{{ product.metafields.global.testing_pc }}</h3>
+  <p class="desc">{{ product.description }}</p>
+</div>
+
 {% schema %}
 {
   "name": "Product Customizer",
   "target": "section",
-  "settings": [
-    { "type": "product", "id": "product", "label": "product", "autofill": true },
-    { "type": "color", "id": "color", "label": "Star Color", "default": "#000000" }
-  ]
+  "stylesheet": "style.css",
+  "templates": ["product"]
 }
 {% endschema %}
