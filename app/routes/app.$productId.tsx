@@ -1,16 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import {
-  Badge,
-  Button,
-  Card,
-  FormLayout,
-  Page,
-  TextField,
-} from "@shopify/polaris";
-import { useState } from "react";
-import MetaFieldList from "~/components/MetaFieldList";
+import { Form, redirect, useActionData, useLoaderData } from "@remix-run/react";
+import { Button, Card, Page } from "@shopify/polaris";
 import { authenticate } from "~/shopify.server";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -34,23 +25,16 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  console.log("first");
   const id = params.productId;
-
-  const formData = await request.formData();
-
-  const label = formData.get("label");
-  const option = formData.get("option");
 
   const { admin, session } = await authenticate.admin(request);
   const product: any = new admin.rest.resources.Product({ session: session });
-  const body = JSON.stringify({ label: label, option: option });
 
   product.id = id;
   product.metafields = [
     {
       key: "product_customizer",
-      value: body,
+      value: JSON.stringify({ name: "caractere_product_customizer", data: [] }),
       type: "single_line_text_field",
       namespace: "caractere",
     },
@@ -58,37 +42,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const response = await product.save({
     update: true,
   });
-
-  if (response) {
-    const data = response.json();
-    console.log(data, "data");
-    return json({ msg: "Saved successfully" });
-  }
-  return json({ msg: "Saved successfully" });
+  return redirect(`/app/${params.productId}/edit/`);
 }
-
 const ProductDetails = () => {
-  const { productDetails, metaFieldList, productId } =
-    useLoaderData<typeof loader>();
-
-  const filteredMetaField: any = metaFieldList.filter(
-    (item: any) => item.namespace === "caractere"
-  );
-
-  console.log(filteredMetaField, "filteredMetaField");
-  const [label, setLabel] = useState<string>("");
-  const [option, setOption] = useState<any>("");
-
+  const { productDetails } = useLoaderData<typeof loader>();
   const data = useActionData<typeof action>();
+  console.log(data, "data");
+
+  // const [label, setLabel] = useState<string>("");
+  // const [option, setOption] = useState<any>("");
 
   return (
     <Page
       backAction={{ content: "Products", url: "/app" }}
       title={productDetails.title}
     >
-      {data?.msg && <Badge tone="success">{data?.msg}</Badge>}
-
-      <Card>
+      {/* <Card>
         {filteredMetaField.map((item: any, index: number) => (
           <MetaFieldList
             item={item}
@@ -97,12 +66,17 @@ const ProductDetails = () => {
             productId={productId}
           />
         ))}
-      </Card>
+      </Card> */}
       <div style={{ margin: "20px" }}></div>
       <Card>
         <Form method="post">
+          <Button submit variant="primary">
+            Create a virtual option
+          </Button>
+        </Form>
+
+        {/* <Form method="post">
           <FormLayout>
-            {/* <div style={{ marginBottom: "24px" }}> */}
             <TextField
               id="label"
               name="label"
@@ -119,12 +93,11 @@ const ProductDetails = () => {
               value={option}
               onChange={(value) => setOption(value)}
             />
-            {/* </div> */}
             <Button variant="primary" submit>
               Create New Variant
             </Button>
           </FormLayout>
-        </Form>
+        </Form> */}
       </Card>
     </Page>
   );

@@ -28,7 +28,6 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  console.log(params, "para");
   const product_id = params.productId;
   const metafield_id = params.metaId;
 
