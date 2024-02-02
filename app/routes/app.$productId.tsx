@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, redirect, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, redirect, useLoaderData, useNavigate } from "@remix-run/react";
 import { Button, Card, Page } from "@shopify/polaris";
 import { authenticate } from "~/shopify.server";
 
@@ -39,65 +39,43 @@ export async function action({ request, params }: ActionFunctionArgs) {
       namespace: "caractere",
     },
   ];
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const response = await product.save({
     update: true,
   });
   return redirect(`/app/${params.productId}/edit/`);
 }
 const ProductDetails = () => {
-  const { productDetails } = useLoaderData<typeof loader>();
-  const data = useActionData<typeof action>();
-  console.log(data, "data");
+  const { productDetails, metaFieldList, productId } =
+    useLoaderData<typeof loader>();
+  const navigate = useNavigate();
 
-  // const [label, setLabel] = useState<string>("");
-  // const [option, setOption] = useState<any>("");
+  const filteredMetaField = metaFieldList.filter(
+    (item: any) => item.namespace === "caractere"
+  );
 
   return (
     <Page
       backAction={{ content: "Products", url: "/app" }}
       title={productDetails.title}
     >
-      {/* <Card>
-        {filteredMetaField.map((item: any, index: number) => (
-          <MetaFieldList
-            item={item}
-            index={index}
-            key={index}
-            productId={productId}
-          />
-        ))}
-      </Card> */}
       <div style={{ margin: "20px" }}></div>
       <Card>
-        <Form method="post">
-          <Button submit variant="primary">
-            Create a virtual option
+        {filteredMetaField.length > 0 ? (
+          <Button
+            variant="primary"
+            size="large"
+            onClick={() => navigate(`/app/${productId}/edit`)}
+          >
+            See your variant
           </Button>
-        </Form>
-
-        {/* <Form method="post">
-          <FormLayout>
-            <TextField
-              id="label"
-              name="label"
-              label="Label"
-              autoComplete="off"
-              value={label}
-              onChange={(value) => setLabel(value)}
-            />
-            <TextField
-              id="option"
-              name="option"
-              label="Option"
-              autoComplete="off"
-              value={option}
-              onChange={(value) => setOption(value)}
-            />
-            <Button variant="primary" submit>
-              Create New Variant
+        ) : (
+          <Form method="post">
+            <Button size="large" submit variant="primary">
+              Create a virtual option
             </Button>
-          </FormLayout>
-        </Form> */}
+          </Form>
+        )}
       </Card>
     </Page>
   );

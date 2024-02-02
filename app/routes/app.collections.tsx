@@ -57,7 +57,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 const Collections = () => {
   const collections: any = useLoaderData();
-  console.log(collections, "collections");
 
   return (
     <Page>

@@ -10,7 +10,6 @@ import {
   TextField,
 } from "@shopify/polaris";
 import { useState } from "react";
-import uuid from "uuid";
 import MetaFieldList from "~/components/MetaFieldList";
 import { authenticate } from "~/shopify.server";
 
@@ -47,14 +46,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const label = formData.get("label");
   const option = formData.get("option");
-  const uuid4 = uuid.v4();
 
   const parsedData = JSON.parse(filteredMetaField[0].value) || {};
   const existingData = parsedData.data;
+  const id = existingData.length;
 
   const updatedData = [
     ...existingData,
-    { id: uuid4, label: label, option: option },
+    { id: id, label: label, option: option },
   ];
 
   const product: any = new admin.rest.resources.Metafield({ session: session });
