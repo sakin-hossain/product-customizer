@@ -35,12 +35,12 @@ export default function Index() {
   };
 
   return (
-    <Page>
+    <Page narrowWidth>
       <Card roundedAbove="md" background="bg-surface-secondary">
         {!isLoading ? (
           <Box paddingBlock="500">
             <Text variant="headingXl" as="h2">
-              Welcome to product customizer
+              Welcome to Product Customizer app
             </Text>
             <Box paddingBlock={"400"}>
               <BlockStack>

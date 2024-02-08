@@ -73,6 +73,24 @@ li {
 .product-button {
   margin: 24px 0;
 }
+.mb-4 {
+  margin-bottom: 16px;
+}
+.m-4 {
+  margin: 16px;
+}
+.my-4 {
+  margin: 16px 0;
+}
+.pb-4 {
+  margin-bottom: 16px;
+}
+.p-4 {
+  margin: 16px;
+}
+.py-4 {
+  margin: 16px 0;
+}
 
 @media only screen and (max-width: 50rem) {
   ul {

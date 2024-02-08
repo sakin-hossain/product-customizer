@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
@@ -6,15 +7,20 @@ import {
   Button,
   Card,
   FormLayout,
+  InlineStack,
   Page,
   TextField,
 } from "@shopify/polaris";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MetaFieldList from "~/components/MetaFieldList";
 import { authenticate } from "~/shopify.server";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
+  const productDetails: any = await admin.rest.resources.Product.find({
+    session: session,
+    id: params.productId,
+  });
 
   const metaFieldList = await admin.rest.resources.Metafield.all({
     session: session,
@@ -26,6 +32,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   );
 
   return json({
+    productDetails: productDetails,
     metaFieldList: filteredMetaField,
     productId: params.productId,
   });
@@ -33,6 +40,12 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const { admin, session } = await authenticate.admin(request);
+
+  const productDetails: any = await admin.rest.resources.Product.find({
+    session: session,
+    id: params.productId,
+  });
+
   const metaFieldList = await admin.rest.resources.Metafield.all({
     session: session,
     metafield: { owner_id: params.productId, owner_resource: "product" },
@@ -49,7 +62,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const parsedData = JSON.parse(filteredMetaField[0].value) || {};
   const existingData = parsedData.data;
-  const id = existingData.length;
+  const productLength = productDetails.options.length;
+  const id = productLength + existingData.length + 1;
 
   const updatedData = [
     ...existingData,
@@ -66,21 +80,32 @@ export async function action({ request, params }: ActionFunctionArgs) {
   });
   product.type = "single_line_text_field";
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const response = await product.save({
+  await product.save({
     update: true,
   });
 
-  return json({ msg: "Update successfully" });
+  return json({ msg: "Added successfully" });
 }
 
 const ProductMetaFieldEdit = () => {
   const data = useActionData<typeof action>();
-  const { metaFieldList, productId } = useLoaderData<typeof loader>();
+  const { metaFieldList, productId, productDetails } =
+    useLoaderData<typeof loader>();
 
   const [label, setLabel] = useState<string>("");
   const [option, setOption] = useState<any>("");
+
+  useEffect(() => {
+    setOption("");
+    setLabel("");
+  }, [data?.msg]);
+
   return (
-    <Page backAction={{ content: "Products", url: "/app" }} title={"Title"}>
+    <Page
+      narrowWidth
+      backAction={{ content: "Products", url: "/app" }}
+      title={productDetails?.title}
+    >
       <Card>
         {metaFieldList.map((item: any, index: number) => (
           <MetaFieldList
@@ -95,7 +120,9 @@ const ProductMetaFieldEdit = () => {
       <Card>
         <Form method="post">
           <FormLayout>
-            {data?.msg && <Badge tone="success">{data?.msg}</Badge>}
+            {data?.msg && option.length === 0 && label.length === 0 && (
+              <Badge tone="success">{data?.msg}</Badge>
+            )}
             <TextField
               id="label"
               name="label"
@@ -110,11 +137,14 @@ const ProductMetaFieldEdit = () => {
               label="Option"
               autoComplete="off"
               value={option}
+              helpText="Please enter colors, such as #000000, #ffffff in the input field."
               onChange={(value) => setOption(value)}
             />
-            <Button variant="primary" submit>
-              Create New Variant
-            </Button>
+            <InlineStack align="end">
+              <Button variant="primary" submit>
+                Create New Variant
+              </Button>
+            </InlineStack>
           </FormLayout>
         </Form>
       </Card>

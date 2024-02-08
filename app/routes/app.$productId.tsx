@@ -1,7 +1,15 @@
+// @ts-nocheck
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, redirect, useLoaderData, useNavigate } from "@remix-run/react";
-import { Button, Card, Page } from "@shopify/polaris";
+import {
+  BlockStack,
+  Button,
+  Card,
+  InlineStack,
+  Page,
+  Text,
+} from "@shopify/polaris";
 import { authenticate } from "~/shopify.server";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -56,26 +64,49 @@ const ProductDetails = () => {
 
   return (
     <Page
+      narrowWidth
       backAction={{ content: "Products", url: "/app" }}
       title={productDetails.title}
     >
       <div style={{ margin: "20px" }}></div>
-      <Card>
-        {filteredMetaField.length > 0 ? (
-          <Button
-            variant="primary"
-            size="large"
-            onClick={() => navigate(`/app/${productId}/edit`)}
-          >
-            See your variant
-          </Button>
-        ) : (
-          <Form method="post">
-            <Button size="large" submit variant="primary">
-              Create a virtual option
-            </Button>
-          </Form>
-        )}
+      <Card roundedAbove="sm">
+        <BlockStack gap="200">
+          {filteredMetaField.length > 0 ? (
+            <>
+              <BlockStack gap="200">
+                <Text as="h2" variant="headingSm" fontWeight="medium">
+                  Please click the button below to reveal the available variants
+                  for this product.
+                </Text>
+              </BlockStack>
+              <BlockStack gap="200">
+                <Button
+                  variant="primary"
+                  size="large"
+                  onClick={() => navigate(`/app/${productId}/edit`)}
+                >
+                  See your variant
+                </Button>
+              </BlockStack>
+            </>
+          ) : (
+            <>
+              <BlockStack gap="200">
+                <Text as="h2" variant="headingSm" fontWeight="medium">
+                  Please click the button below to create options for{" "}
+                  <strong>{productDetails.title}</strong>.
+                </Text>
+              </BlockStack>
+              <InlineStack align="end">
+                <Form method="post">
+                  <Button size="large" submit variant="primary">
+                    Create a virtual option
+                  </Button>
+                </Form>
+              </InlineStack>
+            </>
+          )}
+        </BlockStack>
       </Card>
     </Page>
   );
