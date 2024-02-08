@@ -2,7 +2,7 @@
 
 name = "product-customizer"
 client_id = "6e4b9214aa959ae61a923162f6e6d8a1"
-application_url = "https://bundle-fox-emotions-developments.trycloudflare.com"
+application_url = "https://product-customizer-67245fbf2aa3.herokuapp.com"
 embedded = true
 
 [access_scopes]
@@ -11,9 +11,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://bundle-fox-emotions-developments.trycloudflare.com/auth/callback",
-  "https://bundle-fox-emotions-developments.trycloudflare.com/auth/shopify/callback",
-  "https://bundle-fox-emotions-developments.trycloudflare.com/api/auth/callback"
+  "https://product-customizer-67245fbf2aa3.herokuapp.com/auth/callback",
+  "https://product-customizer-67245fbf2aa3.herokuapp.com/auth/shopify/callback",
+  "https://product-customizer-67245fbf2aa3.herokuapp.com/api/auth/callback"
 ]
 
 [webhooks]
