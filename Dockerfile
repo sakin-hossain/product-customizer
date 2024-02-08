@@ -5,7 +5,7 @@ EXPOSE 3000
 WORKDIR /app
 COPY . .
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 
 RUN npm install
 # Remove CLI packages since we don't need them in production by default.
