@@ -1,19 +1,22 @@
 // @ts-nocheck
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import {
-  Badge,
-  Button,
-  Card,
-  FormLayout,
-  InlineStack,
-  Page,
-  TextField,
-} from "@shopify/polaris";
-import { useEffect, useState } from "react";
+import { useActionData, useLoaderData } from "@remix-run/react";
+import { BlockStack, LegacyCard, Page, Tabs } from "@shopify/polaris";
+import { useCallback, useState } from "react";
+import { DOMParser, XMLSerializer } from "xmldom";
+import ImageTab from "~/components/ImageTab";
 import MetaFieldList from "~/components/MetaFieldList";
+import VariantsTab from "~/components/VariantsTab";
 import { authenticate } from "~/shopify.server";
+import indexStyles from "../routes/_index/style.css";
+
+export const links = () => [{ rel: "stylesheet", href: indexStyles }];
+
+export enum FormNames {
+  SVG_FORM = "svg",
+  VARIANT_FORM = "variant",
+}
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -39,6 +42,10 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  await new Promise((res) => setTimeout(res, 1000));
+  const formData = await request.formData();
+  const formName = formData.get("formName");
+
   const { admin, session } = await authenticate.admin(request);
 
   const productDetails: any = await admin.rest.resources.Product.find({
@@ -51,103 +58,155 @@ export async function action({ request, params }: ActionFunctionArgs) {
     metafield: { owner_id: params.productId, owner_resource: "product" },
   });
 
-  const filteredMetaField: any = metaFieldList.data.filter(
-    (item: any) => item.namespace === "caractere"
+  const variantsMetaField = metaFieldList.data.filter(
+    (item: any) => item.key === "product_customizer_variants"
+  );
+  const imageMetaField = metaFieldList.data.filter(
+    (item: any) => item.key === "product_customizer_image"
   );
 
-  const formData = await request.formData();
+  switch (formName) {
+    case FormNames.VARIANT_FORM:
+      const label = formData.get("label");
+      const option = formData.get("option");
 
-  const label = formData.get("label");
-  const option = formData.get("option");
+      const parsedData = JSON.parse(variantsMetaField[0].value) || {};
+      const existingData = parsedData.data;
+      const productLength = productDetails.options.length;
+      const id = productLength + existingData.length + 1;
 
-  const parsedData = JSON.parse(filteredMetaField[0].value) || {};
-  const existingData = parsedData.data;
-  const productLength = productDetails.options.length;
-  const id = productLength + existingData.length + 1;
+      const updatedData = [
+        ...existingData,
+        { id: id, label: label, option: option },
+      ];
 
-  const updatedData = [
-    ...existingData,
-    { id: id, label: label, option: option },
-  ];
+      const product: any = new admin.rest.resources.Metafield({
+        session: session,
+      });
+      product.product_id = params.productId;
+      product.id = variantsMetaField[0].id;
+      product.value = JSON.stringify({
+        name: "caractere_product_customizer_variants",
+        data: updatedData,
+      });
+      product.type = "single_line_text_field";
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      await product.save({
+        update: true,
+      });
+      return json({ msg: "Added successfully" });
+    case FormNames.SVG_FORM:
+      const svg = formData.get("svg-image");
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svg, "image/svg+xml");
+      const paths = doc.getElementsByTagName("path");
+      const colorIdMap = new Map<string, string>();
 
-  const product: any = new admin.rest.resources.Metafield({ session: session });
-
-  product.product_id = params.productId;
-  product.id = filteredMetaField[0].id;
-  product.value = JSON.stringify({
-    name: "caractere_product_customizer",
-    data: updatedData,
-  });
-  product.type = "single_line_text_field";
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  await product.save({
-    update: true,
-  });
-
-  return json({ msg: "Added successfully" });
+      // smillarity check
+      const colors = Array.from(colorIdMap.keys());
+      for (let i = 0; i < colors.length; i++) {
+        for (let j = i + 1; j < colors.length; j++) {
+          const distance = colorDistance(colors[i], colors[j]);
+          console.log(
+            `Distance between ${colors[i]} and ${colors[j]}: ${distance}------------------`
+          );
+        }
+      }
+      console.log(colors, "colors-----------------");
+      let optionLength = productDetails.options.length;
+      for (let i = 0; i < paths.length; i++) {
+        const color = paths[i].getAttribute("fill");
+        let id;
+        if (colorIdMap.has(color)) {
+          id = colorIdMap.get(color);
+        } else {
+          id = "option" + (optionLength + 1);
+          colorIdMap.set(color, id);
+          optionLength++;
+        }
+        paths[i].setAttribute("id", id);
+      }
+      const serializer = new XMLSerializer();
+      const updatedSvg = serializer.serializeToString(doc);
+      const image: any = new admin.rest.resources.Metafield({
+        session: session,
+      });
+      image.product_id = params.productId;
+      image.id = imageMetaField[0].id;
+      image.value = JSON.stringify({
+        name: "caractere_product_customizer_image",
+        data: updatedSvg,
+      });
+      image.type = "single_line_text_field";
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      await image.save({
+        update: true,
+      });
+      return json({
+        msg: "Added successfully",
+      });
+    default:
+      return json({ msg: "Clicked in default" });
+  }
 }
 
 const ProductMetaFieldEdit = () => {
   const data = useActionData<typeof action>();
-  const { metaFieldList, productId, productDetails } =
+  const { productDetails, metaFieldList, productId } =
     useLoaderData<typeof loader>();
 
-  const [label, setLabel] = useState<string>("");
-  const [option, setOption] = useState<any>("");
+  const [selected, setSelected] = useState(0);
 
-  useEffect(() => {
-    setOption("");
-    setLabel("");
-  }, [data?.msg]);
+  const handleTabChange = useCallback(
+    (selectedTabIndex: number) => setSelected(selectedTabIndex),
+    []
+  );
 
+  const tabs = [
+    {
+      id: "variant",
+      content: "Variants",
+      accessibilityLabel: "All customers",
+      panelID: "all-customers-fitted-content-2",
+    },
+    {
+      id: "image",
+      content: "Image",
+      panelID: "accepts-marketing-fitted-Ccontent-2",
+    },
+  ];
   return (
     <Page
       narrowWidth
-      backAction={{ content: "Products", url: "/app" }}
+      backAction={{ content: "Products", url: `/app/${productDetails?.id}` }}
       title={productDetails?.title}
     >
-      <Card>
-        {metaFieldList.map((item: any, index: number) => (
-          <MetaFieldList
-            item={item}
-            index={index}
-            key={index}
-            productId={productId}
-          />
-        ))}
-      </Card>
-      <div style={{ margin: "20px" }}></div>
-      <Card>
-        <Form method="post">
-          <FormLayout>
-            {data?.msg && option.length === 0 && label.length === 0 && (
-              <Badge tone="success">{data?.msg}</Badge>
+      <LegacyCard>
+        <Tabs tabs={tabs} selected={selected} onSelect={handleTabChange} fitted>
+          <LegacyCard.Section>
+            <BlockStack gap={"400"}>
+              {metaFieldList.map((item: any, index: number) => (
+                <MetaFieldList
+                  selected={selected}
+                  item={item}
+                  index={index}
+                  key={index}
+                  productId={productId}
+                />
+              ))}
+            </BlockStack>
+            {selected === 0 ? (
+              <VariantsTab
+                data={data}
+                metaFieldList={metaFieldList}
+                productId={productId}
+              />
+            ) : (
+              <ImageTab />
             )}
-            <TextField
-              id="label"
-              name="label"
-              label="Label"
-              autoComplete="off"
-              value={label}
-              onChange={(value) => setLabel(value)}
-            />
-            <TextField
-              id="option"
-              name="option"
-              label="Option"
-              autoComplete="off"
-              value={option}
-              helpText="Please enter colors, such as #000000, #ffffff in the input field."
-              onChange={(value) => setOption(value)}
-            />
-            <InlineStack align="end">
-              <Button variant="primary" submit>
-                Create New Variant
-              </Button>
-            </InlineStack>
-          </FormLayout>
-        </Form>
-      </Card>
+          </LegacyCard.Section>
+        </Tabs>
+      </LegacyCard>
     </Page>
   );
 };

@@ -60,7 +60,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const product: any = new admin.rest.resources.Metafield({ session: session });
   const body = JSON.stringify({
-    name: "caractere_product_customizer",
+    name: "caractere_product_customizer_variants",
     data: [
       ...filteredMetaFieldValue,
       { id: params.variantId, option: option, label: label },

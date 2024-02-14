@@ -17,4 +17,19 @@ module.exports = {
   serverModuleFormat: "cjs",
   dev: { port: process.env.HMR_SERVER_PORT || 8002 },
   future: {},
+  browserNodeBuiltinsPolyfill: {
+    modules: {
+      fs: true,
+      worker_threads: true,
+      process: true,
+      "stream/web": true,
+      buffer: true,
+      child_process: true,
+      util: true,
+      path: true,
+      stream: true,
+      string_decoder: true,
+      os: true,
+    },
+  },
 };
