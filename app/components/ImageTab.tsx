@@ -16,11 +16,22 @@ const ImageTab = ({ data }: any) => {
             cols={50}
             rows={20}
           ></textarea> */}
-          <label htmlFor="svg-upload">Upload your SVG file here</label>
-          <input type="file" id="svg-image" accept=".svg" name="svg-image" />
+          <label htmlFor="images" className="drop-container" id="dropcontainer">
+            {/* <span className="drop-title">Drop files here</span>
+            or */}
+            <input
+              type="file"
+              accept=".svg"
+              name="svg-image"
+              id="images"
+              required
+            />
+          </label>
+          {/* <label htmlFor="svg-upload">Upload your SVG file here</label> */}
+          {/* <input type="file" id="svg-image" accept=".svg" name="svg-image" /> */}
           <InlineStack align="end">
             <Button submit variant="primary" size="large">
-              Save
+              Upload your SVG
             </Button>
           </InlineStack>
         </FormLayout>

@@ -33,35 +33,35 @@ const MetaFieldList = ({
 
   return (
     <>
+      {name.data.length > 0 && (
+        <>
+          {remainingColors === 0 ? (
+            <Text
+              variant="headingMd"
+              as="h4"
+              fontWeight="semibold"
+              tone="success"
+              alignment="center"
+            >
+              Done! Now you can customize your image.
+            </Text>
+          ) : (
+            <Text
+              variant="headingMd"
+              as="h4"
+              fontWeight="semibold"
+              tone="caution"
+              alignment="center"
+            >
+              You need to add {remainingColors} more color variants.
+            </Text>
+          )}
+        </>
+      )}
       {item.key === "product_customizer_variants" && selected === 0 && (
         <BlockStack gap="400">
           <BlockStack gap="200">
-            {name.data.length > 0 && (
-              <>
-                {remainingColors === 0 ? (
-                  <Text
-                    variant="headingMd"
-                    as="h4"
-                    fontWeight="semibold"
-                    tone="success"
-                    alignment="center"
-                  >
-                    Done! Now you can customize your image.
-                  </Text>
-                ) : (
-                  <Text
-                    variant="headingMd"
-                    as="h4"
-                    fontWeight="semibold"
-                    tone="caution"
-                    alignment="center"
-                  >
-                    You need to add {remainingColors} more variants
-                  </Text>
-                )}
-              </>
-            )}
-            {name.data.length > 0 ? (
+            {name.data.length > 0 &&
               name?.data?.map((list: any, index: number) => (
                 <Box key={index}>
                   <InlineGrid columns="1fr auto">
@@ -80,12 +80,7 @@ const MetaFieldList = ({
                     </Button>
                   </InlineGrid>
                 </Box>
-              ))
-            ) : (
-              <Text as="h6" variant="headingSm" tone="critical">
-                No items
-              </Text>
-            )}
+              ))}
           </BlockStack>
         </BlockStack>
       )}
