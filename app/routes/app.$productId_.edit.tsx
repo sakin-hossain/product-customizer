@@ -1,6 +1,12 @@
 // @ts-nocheck
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import {
+  json,
+  unstable_composeUploadHandlers,
+  unstable_createFileUploadHandler,
+  unstable_createMemoryUploadHandler,
+  unstable_parseMultipartFormData,
+} from "@remix-run/node";
 import { useActionData, useLoaderData } from "@remix-run/react";
 import { BlockStack, Button, LegacyCard, Page, Tabs } from "@shopify/polaris";
 import { useCallback, useEffect, useState } from "react";
@@ -44,7 +50,19 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   await new Promise((res) => setTimeout(res, 1000));
-  const formData = await request.formData();
+  const uploadHandler = unstable_composeUploadHandlers(
+    unstable_createFileUploadHandler({
+      maxPartSize: 5_000_000,
+      file: ({ filename }) => filename,
+    }),
+    unstable_createMemoryUploadHandler()
+  );
+
+  // const formData = await request.formData();
+  const formData = await unstable_parseMultipartFormData(
+    request,
+    uploadHandler
+  );
   const formName = formData.get("formName");
 
   const { admin, session } = await authenticate.admin(request);
@@ -97,9 +115,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
       });
       return json({ msg: "Added successfully" });
     case FormNames.SVG_FORM:
-      const svg = formData.get("svg-image");
+      const svg = formData.get("svg-image") as File;
+      const svgData = await svg.text();
+
+      console.log(svgData, "reader++++++++++++++++++++++++++++++");
+      console.log(svg, "svg++++++++++++++++++++++++++++++");
+
       const parser = new DOMParser();
-      const doc = parser.parseFromString(svg, "image/svg+xml");
+      const doc = parser.parseFromString(svgData, "image/svg+xml");
       const paths = doc.getElementsByTagName("path");
       const colorIdMap = new Map<string, string>();
 
@@ -118,6 +141,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       }
       const serializer = new XMLSerializer();
       const updatedSvg = serializer.serializeToString(doc);
+      console.log(updatedSvg, "updatedSvg+++++++++++++++++++++++++");
       const image: any = new admin.rest.resources.Metafield({
         session: session,
       });
@@ -135,6 +159,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       return json({
         msg: "Added successfully",
       });
+
     default:
       return json({ msg: "Clicked in default" });
   }
@@ -145,7 +170,7 @@ const ProductMetaFieldEdit = () => {
   const { productDetails, metaFieldList, productId } =
     useLoaderData<typeof loader>();
 
-  const [selected, setSelected] = useState(0);
+  const [selected, setSelected] = useState(1);
 
   const handleTabChange = useCallback(
     (selectedTabIndex: number) => setSelected(selectedTabIndex),

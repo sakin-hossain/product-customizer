@@ -2,7 +2,7 @@
 
 name = "Product Customizer"
 client_id = "9a92ac27062831533623257a086effb5"
-application_url = "https://honey-xerox-fool-kruger.trycloudflare.com"
+application_url = "https://reply-comics-oracle-lou.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,9 +11,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://honey-xerox-fool-kruger.trycloudflare.com/auth/callback",
-  "https://honey-xerox-fool-kruger.trycloudflare.com/auth/shopify/callback",
-  "https://honey-xerox-fool-kruger.trycloudflare.com/api/auth/callback"
+  "https://reply-comics-oracle-lou.trycloudflare.com/auth/callback",
+  "https://reply-comics-oracle-lou.trycloudflare.com/auth/shopify/callback",
+  "https://reply-comics-oracle-lou.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

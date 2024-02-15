@@ -6,18 +6,18 @@ const ImageTab = ({ data }: any) => {
   return (
     <div>
       <Form method="post" encType="multipart/form-data">
-        <input type="hidden" name="formName" value={FormNames.SVG_FORM} />
         <FormLayout>
           {data?.msg && <Badge tone="success">{data?.msg}</Badge>}
-          <label htmlFor="svg-image">Please give your svg code here</label>
+          <input type="hidden" name="formName" value={FormNames.SVG_FORM} />
+          {/* <label htmlFor="svg-image">Please give your svg code here</label>
           <textarea
             name="svg-image"
             id="svg-image"
             cols={50}
             rows={20}
-          ></textarea>
-          {/* <label htmlFor="svg-upload">Upload your SVG file here</label>
-          <input type="file" id="svg-image" accept=".svg" name="svg-image" /> */}
+          ></textarea> */}
+          <label htmlFor="svg-upload">Upload your SVG file here</label>
+          <input type="file" id="svg-image" accept=".svg" name="svg-image" />
           <InlineStack align="end">
             <Button submit variant="primary" size="large">
               Save
