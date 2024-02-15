@@ -137,42 +137,44 @@ const ProductDetails = () => {
             <Text variant="headingLg" as="h5" fontWeight="medium">
               Product Variants
             </Text>
-            {variantsMetaField.length > 0 ? (
-              <>
-                <BlockStack gap="200">
-                  <Text as="h2" variant="headingSm" fontWeight="regular">
-                    Please click the button below to reveal the available
-                    variants for this product.
-                  </Text>
-                </BlockStack>
-                <BlockStack gap="200">
-                  <Button
-                    variant="primary"
-                    size="large"
-                    onClick={() => navigate(`/app/${productId}/edit`)}
-                  >
-                    See your variant
-                  </Button>
-                </BlockStack>
-              </>
-            ) : (
-              <>
-                <BlockStack gap="200">
-                  <Text as="h2" variant="headingSm" fontWeight="regular">
-                    Please click the button below to create options for{" "}
-                    <strong>{productDetails.title}</strong>.
-                  </Text>
-                  <input
-                    type="hidden"
-                    name="formName"
-                    value={FormNames.VARIANTS_FORM}
-                  />
-                  <Button size="large" submit>
-                    {variantFormText}
-                  </Button>
-                </BlockStack>
-              </>
-            )}
+            <Form method="post">
+              {variantsMetaField.length > 0 ? (
+                <>
+                  <BlockStack gap="200">
+                    <Text as="h2" variant="headingSm" fontWeight="regular">
+                      Please click the button below to reveal the available
+                      variants for this product.
+                    </Text>
+                  </BlockStack>
+                  <BlockStack gap="200">
+                    <Button
+                      variant="primary"
+                      size="large"
+                      onClick={() => navigate(`/app/${productId}/edit`)}
+                    >
+                      See your variant
+                    </Button>
+                  </BlockStack>
+                </>
+              ) : (
+                <>
+                  <BlockStack gap="200">
+                    <Text as="h2" variant="headingSm" fontWeight="regular">
+                      Please click the button below to create options for{" "}
+                      <strong>{productDetails.title}</strong>.
+                    </Text>
+                    <input
+                      type="hidden"
+                      name="formName"
+                      value={FormNames.VARIANTS_FORM}
+                    />
+                    <Button size="large" submit>
+                      {variantFormText}
+                    </Button>
+                  </BlockStack>
+                </>
+              )}
+            </Form>
           </BlockStack>
           <BlockStack gap={400}>
             <Text variant="headingLg" as="h5" fontWeight="medium">

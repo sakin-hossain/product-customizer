@@ -2,13 +2,14 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useActionData, useLoaderData } from "@remix-run/react";
-import { BlockStack, LegacyCard, Page, Tabs } from "@shopify/polaris";
-import { useCallback, useState } from "react";
+import { BlockStack, Button, LegacyCard, Page, Tabs } from "@shopify/polaris";
+import { useCallback, useEffect, useState } from "react";
 import { DOMParser, XMLSerializer } from "xmldom";
 import ImageTab from "~/components/ImageTab";
 import MetaFieldList from "~/components/MetaFieldList";
 import VariantsTab from "~/components/VariantsTab";
 import { authenticate } from "~/shopify.server";
+import { extractUniqueFillColors } from "~/utils/utils";
 import indexStyles from "../routes/_index/style.css";
 
 export const links = () => [{ rel: "stylesheet", href: indexStyles }];
@@ -102,17 +103,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
       const paths = doc.getElementsByTagName("path");
       const colorIdMap = new Map<string, string>();
 
-      // smillarity check
-      const colors = Array.from(colorIdMap.keys());
-      for (let i = 0; i < colors.length; i++) {
-        for (let j = i + 1; j < colors.length; j++) {
-          const distance = colorDistance(colors[i], colors[j]);
-          console.log(
-            `Distance between ${colors[i]} and ${colors[j]}: ${distance}------------------`
-          );
-        }
-      }
-      console.log(colors, "colors-----------------");
       let optionLength = productDetails.options.length;
       for (let i = 0; i < paths.length; i++) {
         const color = paths[i].getAttribute("fill");
@@ -162,24 +152,63 @@ const ProductMetaFieldEdit = () => {
     []
   );
 
+  const [uniqueColorLength, setUniqueColorLength] = useState<number>(0);
+  const [variantLength, setVariantLength] = useState<number>(0);
+  const [imageMetaField, setImageMetaField] = useState<any>(null);
+  const [variantMetaField, setVariantMetaField] = useState<any>(null);
+
+  useEffect(() => {
+    metaFieldList.map((item: any) => {
+      const name = JSON.parse(item.value);
+      if (item.key === "product_customizer_image" && name.data.length > 0) {
+        const uniqueFillColors = extractUniqueFillColors(name.data);
+        setUniqueColorLength(uniqueFillColors.length);
+        setImageMetaField(true);
+      }
+
+      if (item.key === "product_customizer_variants") {
+        setVariantLength(name.data.length);
+        setVariantMetaField(true);
+      }
+      return null;
+    });
+  }, [metaFieldList]);
+
   const tabs = [
     {
       id: "variant",
       content: "Variants",
       accessibilityLabel: "All customers",
       panelID: "all-customers-fitted-content-2",
+      disable: !variantMetaField,
     },
     {
       id: "image",
       content: "Image",
       panelID: "accepts-marketing-fitted-Ccontent-2",
+      disable: !imageMetaField,
     },
   ];
+
+  const remainingColors = uniqueColorLength - variantLength;
+
   return (
     <Page
       narrowWidth
       backAction={{ content: "Products", url: `/app/${productDetails?.id}` }}
       title={productDetails?.title}
+      primaryAction={
+        <Button
+          onClick={() =>
+            window.open(
+              `https://caractere-shop.nobrainerdev.ca/products/${productDetails.handle}`
+            )
+          }
+          variant="primary"
+        >
+          See your variant
+        </Button>
+      }
     >
       <LegacyCard>
         <Tabs tabs={tabs} selected={selected} onSelect={handleTabChange} fitted>
@@ -192,6 +221,7 @@ const ProductMetaFieldEdit = () => {
                   index={index}
                   key={index}
                   productId={productId}
+                  remainingColors={remainingColors}
                 />
               ))}
             </BlockStack>
@@ -202,7 +232,7 @@ const ProductMetaFieldEdit = () => {
                 productId={productId}
               />
             ) : (
-              <ImageTab />
+              <ImageTab data={data} />
             )}
           </LegacyCard.Section>
         </Tabs>

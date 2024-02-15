@@ -1,10 +1,17 @@
 import { useNavigate } from "@remix-run/react";
 import { BlockStack, Box, Button, InlineGrid, Text } from "@shopify/polaris";
 
-const MetaFieldList = ({ item, index, productId, selected }: any) => {
+const MetaFieldList = ({
+  item,
+  index,
+  productId,
+  selected,
+  remainingColors,
+}: any) => {
   const navigate = useNavigate();
   const name = JSON.parse(item.value);
   let uniqueFillColors;
+
   if (
     item.key === "product_customizer_image" &&
     selected === 1 &&
@@ -29,11 +36,36 @@ const MetaFieldList = ({ item, index, productId, selected }: any) => {
       {item.key === "product_customizer_variants" && selected === 0 && (
         <BlockStack gap="400">
           <BlockStack gap="200">
+            {name.data.length > 0 && (
+              <>
+                {remainingColors === 0 ? (
+                  <Text
+                    variant="headingMd"
+                    as="h4"
+                    fontWeight="semibold"
+                    tone="success"
+                    alignment="center"
+                  >
+                    Done! Now you can customize your image.
+                  </Text>
+                ) : (
+                  <Text
+                    variant="headingMd"
+                    as="h4"
+                    fontWeight="semibold"
+                    tone="caution"
+                    alignment="center"
+                  >
+                    You need to add {remainingColors} more variants
+                  </Text>
+                )}
+              </>
+            )}
             {name.data.length > 0 ? (
               name?.data?.map((list: any, index: number) => (
                 <Box key={index}>
                   <InlineGrid columns="1fr auto">
-                    <Text as="h2" variant="headingSm">
+                    <Text as="h2" variant="headingSm" fontWeight="medium">
                       {list.label}
                     </Text>
                     <Button
@@ -50,7 +82,9 @@ const MetaFieldList = ({ item, index, productId, selected }: any) => {
                 </Box>
               ))
             ) : (
-              <p>No items</p>
+              <Text as="h6" variant="headingSm" tone="critical">
+                No items
+              </Text>
             )}
           </BlockStack>
         </BlockStack>
@@ -58,7 +92,7 @@ const MetaFieldList = ({ item, index, productId, selected }: any) => {
       {item.key === "product_customizer_image" && selected === 1 && (
         <BlockStack gap="400">
           <BlockStack gap="200">
-            <div style={{ display: "flex", gap: "12px" }}>
+            <div style={{ display: "flex", gap: "12px", margin: "16px 0" }}>
               {uniqueFillColors &&
                 uniqueFillColors.map((color: any, index: number) => (
                   <div

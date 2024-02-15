@@ -2,7 +2,7 @@
 
 name = "Product Customizer"
 client_id = "9a92ac27062831533623257a086effb5"
-application_url = "https://derby-toll-sponsors-crucial.trycloudflare.com"
+application_url = "https://honey-xerox-fool-kruger.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,9 +11,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://derby-toll-sponsors-crucial.trycloudflare.com/auth/callback",
-  "https://derby-toll-sponsors-crucial.trycloudflare.com/auth/shopify/callback",
-  "https://derby-toll-sponsors-crucial.trycloudflare.com/api/auth/callback"
+  "https://honey-xerox-fool-kruger.trycloudflare.com/auth/callback",
+  "https://honey-xerox-fool-kruger.trycloudflare.com/auth/shopify/callback",
+  "https://honey-xerox-fool-kruger.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

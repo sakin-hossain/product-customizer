@@ -25,3 +25,18 @@ export function colorDistance(color1: string, color2: string) {
 
   return distance;
 }
+
+export const extractUniqueFillColors = (svgString: string) => {
+  const fillRegex = /fill="([^"]*)"/g;
+  const matches = svgString.match(fillRegex);
+  const colors = new Set();
+
+  if (matches) {
+    matches.forEach((match: any) => {
+      const color = match.replace('fill="', "").replace('"', "");
+      colors.add(color);
+    });
+  }
+
+  return Array.from(colors);
+};

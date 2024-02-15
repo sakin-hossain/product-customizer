@@ -21,9 +21,7 @@ const VariantsTab = ({ data, metaFieldList, productId }: any) => {
         <Form method="post">
           <input type="hidden" name="formName" value={FormNames.VARIANT_FORM} />
           <FormLayout>
-            {data?.msg && option.length === 0 && (
-              <Badge tone="success">{data?.msg}</Badge>
-            )}
+            {data?.msg && <Badge tone="success">{data?.msg}</Badge>}
             <TextField
               id="label"
               name="label"
