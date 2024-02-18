@@ -58,13 +58,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const label = formData.get("label");
   const option = formData.get("option");
 
+  const updatedMetaField = [
+    ...filteredMetaFieldValue,
+    {
+      id: params.variantId,
+      option: option,
+      label: label,
+      color: metaFieldValues.find((item) => item.id == params.variantId)?.color,
+    },
+  ];
+
+  console.log(updatedMetaField, "ipdsdsd");
+
   const product: any = new admin.rest.resources.Metafield({ session: session });
   const body = JSON.stringify({
     name: "caractere_product_customizer_variants",
-    data: [
-      ...filteredMetaFieldValue,
-      { id: params.variantId, option: option, label: label },
-    ],
+    data: updatedMetaField,
   });
 
   product.product_id = product_id;
@@ -80,6 +89,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function EditMetaField() {
   const { metaFieldDetails, product_id } = useLoaderData<typeof loader>();
+
+  console.log(metaFieldDetails, "metaFieldDetails");
   const data = useActionData<typeof action>();
 
   // const parsedValue = JSON.parse(metaFieldDetails.value);

@@ -18,6 +18,7 @@ export default function Index() {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
   const selected = async () => {
     const productDetails = await shopify.resourcePicker({
       type: "product",
@@ -55,6 +56,7 @@ export default function Index() {
                 </Button>
               </BlockStack>
             </Box>
+            <Box></Box>
           </Box>
         ) : (
           <Spinner accessibilityLabel="Spinner example" size="large" />

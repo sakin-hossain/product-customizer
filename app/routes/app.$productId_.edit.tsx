@@ -15,7 +15,10 @@ import ImageTab from "~/components/ImageTab";
 import MetaFieldList from "~/components/MetaFieldList";
 import VariantsTab from "~/components/VariantsTab";
 import { authenticate } from "~/shopify.server";
-import { extractUniqueFillColors } from "~/utils/utils";
+import {
+  extractUniqueFillColors,
+  generateColorVariantsArray,
+} from "~/utils/utils";
 import indexStyles from "../routes/_index/style.css";
 
 export const links = () => [{ rel: "stylesheet", href: indexStyles }];
@@ -85,41 +88,38 @@ export async function action({ request, params }: ActionFunctionArgs) {
   );
 
   switch (formName) {
-    case FormNames.VARIANT_FORM:
-      const label = formData.get("label");
-      const option = formData.get("option");
+    // case FormNames.VARIANT_FORM:
+    //   const label = formData.get("label");
+    //   const option = formData.get("option");
 
-      const parsedData = JSON.parse(variantsMetaField[0].value) || {};
-      const existingData = parsedData.data;
-      const productLength = productDetails.options.length;
-      const id = productLength + existingData.length + 1;
+    //   const parsedData = JSON.parse(variantsMetaField[0].value) || {};
+    //   const existingData = parsedData.data;
+    //   const productLength = productDetails.options.length;
+    //   const id = productLength + existingData.length + 1;
 
-      const updatedData = [
-        ...existingData,
-        { id: id, label: label, option: option },
-      ];
+    //   const updatedData = [
+    //     ...existingData,
+    //     { id: id, label: label, option: option },
+    //   ];
 
-      const product: any = new admin.rest.resources.Metafield({
-        session: session,
-      });
-      product.product_id = params.productId;
-      product.id = variantsMetaField[0].id;
-      product.value = JSON.stringify({
-        name: "caractere_product_customizer_variants",
-        data: updatedData,
-      });
-      product.type = "single_line_text_field";
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      await product.save({
-        update: true,
-      });
-      return json({ msg: "Added successfully" });
+    //   const product: any = new admin.rest.resources.Metafield({
+    //     session: session,
+    //   });
+    //   product.product_id = params.productId;
+    //   product.id = variantsMetaField[0].id;
+    //   product.value = JSON.stringify({
+    //     name: "caractere_product_customizer_variants",
+    //     data: updatedData,
+    //   });
+    //   product.type = "single_line_text_field";
+    //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //   await product.save({
+    //     update: true,
+    //   });
+    //   return json({ msg: "Added successfully" });
     case FormNames.SVG_FORM:
       const svg = formData.get("svg-image") as File;
       const svgData = await svg.text();
-
-      console.log(svgData, "reader++++++++++++++++++++++++++++++");
-      console.log(svg, "svg++++++++++++++++++++++++++++++");
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(svgData, "image/svg+xml");
@@ -139,9 +139,30 @@ export async function action({ request, params }: ActionFunctionArgs) {
         }
         paths[i].setAttribute("id", id);
       }
+
+      const colorVariants = generateColorVariantsArray(
+        colorIdMap,
+        productDetails
+      );
+
+      if (colorVariants) {
+        const product: any = new admin.rest.resources.Metafield({
+          session: session,
+        });
+        product.product_id = params.productId;
+        product.id = variantsMetaField[0].id;
+        product.value = JSON.stringify({
+          name: "caractere_product_customizer_variants",
+          data: colorVariants,
+        });
+        product.type = "single_line_text_field";
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        await product.save({
+          update: true,
+        });
+      }
       const serializer = new XMLSerializer();
       const updatedSvg = serializer.serializeToString(doc);
-      console.log(updatedSvg, "updatedSvg+++++++++++++++++++++++++");
       const image: any = new admin.rest.resources.Metafield({
         session: session,
       });
@@ -170,7 +191,7 @@ const ProductMetaFieldEdit = () => {
   const { productDetails, metaFieldList, productId } =
     useLoaderData<typeof loader>();
 
-  const [selected, setSelected] = useState(1);
+  const [selected, setSelected] = useState(0);
 
   const handleTabChange = useCallback(
     (selectedTabIndex: number) => setSelected(selectedTabIndex),
@@ -201,17 +222,17 @@ const ProductMetaFieldEdit = () => {
 
   const tabs = [
     {
+      id: "image",
+      content: "Image",
+      panelID: "accepts-marketing-fitted-Ccontent-2",
+      disable: !imageMetaField,
+    },
+    {
       id: "variant",
       content: "Variants",
       accessibilityLabel: "All customers",
       panelID: "all-customers-fitted-content-2",
       disable: !variantMetaField,
-    },
-    {
-      id: "image",
-      content: "Image",
-      panelID: "accepts-marketing-fitted-Ccontent-2",
-      disable: !imageMetaField,
     },
   ];
 
@@ -251,13 +272,13 @@ const ProductMetaFieldEdit = () => {
               ))}
             </BlockStack>
             {selected === 0 ? (
+              <ImageTab data={data} />
+            ) : (
               <VariantsTab
                 data={data}
                 metaFieldList={metaFieldList}
                 productId={productId}
               />
-            ) : (
-              <ImageTab data={data} />
             )}
           </LegacyCard.Section>
         </Tabs>
