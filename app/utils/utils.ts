@@ -8,21 +8,40 @@ export const generateColorVariantsArray = (
     option: string;
     color: string;
   }[] = [];
+  // const productLength = productDetails.options.length;
+  // let id = productLength + 1;
+
+  // colorIdMap.forEach((value: any, key: any, index: any) => {
+  //   const colorMatcher = value === "option" + id;
+  //   let color = null;
+  //   if (colorMatcher) {
+  //     color = key;
+  //   }
+  //   console.log(key, value, colorMatcher, "key value-----------------");
+  //   colorVariants.push({
+  //     id: id,
+  //     label: `Pattern Color ${id}`,
+  //     option: randomColors,
+  //     color: color,
+  //   });
+  //   id++;
+  // });
+  // return colorVariants;
   const productLength = productDetails.options.length;
   let id = productLength + 1;
 
-  colorIdMap.forEach((value: any, key: any, index: any) => {
-    const colorMatcher = value === "option" + id;
-    let color = null;
-    if (colorMatcher) {
-      color = key;
-    }
-    console.log(key, value, colorMatcher, "key value-----------------");
+  Object.entries(colorIdMap).forEach(([key, value]: [any, any]) => {
+    // const colorMatcher = value === "option" + id;
+    // let color = null;
+    // console.log(colorMatcher, key, value, "colorMatcher,key,value");
+    // if (colorMatcher) {
+    //   color = value;
+    // }
     colorVariants.push({
       id: id,
       label: `Pattern Color ${id}`,
-      option: randomColors,
-      color: color,
+      option: randomColors, // Update this to use random colors as per your requirement
+      color: value,
     });
     id++;
   });

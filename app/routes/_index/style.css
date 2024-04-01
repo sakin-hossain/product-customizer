@@ -48,7 +48,6 @@
   margin-bottom: -2px;
   margin-left: 4px;
 }
-
 input[type="file"]::file-selector-button {
   margin-right: 20px;
   border: none;

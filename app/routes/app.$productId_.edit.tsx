@@ -118,33 +118,75 @@ export async function action({ request, params }: ActionFunctionArgs) {
     //   });
     //   return json({ msg: "Added successfully" });
     case FormNames.SVG_FORM:
+      let optionLength = productDetails.options.length;
       const svg = formData.get("svg-image") as File;
       const svgData = await svg.text();
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(svgData, "image/svg+xml");
-      const paths = doc.getElementsByTagName("path");
-      const colorIdMap = new Map<string, string>();
 
-      let optionLength = productDetails.options.length;
-      for (let i = 0; i < paths.length; i++) {
-        const color = paths[i].getAttribute("fill");
-        let id;
-        if (colorIdMap.has(color)) {
-          id = colorIdMap.get(color);
-        } else {
-          id = "option" + (optionLength + 1);
-          colorIdMap.set(color, id);
-          optionLength++;
+      const styleTag = doc.getElementsByTagName("style")[0];
+      // Extract the CSS content from the style tag
+      const cssContent = styleTag.textContent;
+
+      // Regex to match 'fill' properties
+      const fillRegex = /\.([^{]+)\s*{\s*fill:\s*([^;]+);/g;
+
+      let fillColors = [];
+      let classFillMap = {};
+      let updatedClassFillMap = {};
+
+      let match;
+      while ((match = fillRegex.exec(cssContent)) !== null) {
+        const className = match[1].trim();
+        const fillColor = match[2].trim();
+        if (fillColor !== "none") {
+          if (!classFillMap[className]) {
+            classFillMap[className] = fillColor;
+            fillColors.push(fillColor);
+          }
         }
-        paths[i].setAttribute("id", id);
       }
 
+      // Filter out unique fill colors
+      fillColors = Array.from(new Set(fillColors));
+
+      // Iterate through each class in classFillMap
+      for (const classNames in classFillMap) {
+        if (classFillMap.hasOwnProperty(classNames)) {
+          const normalizedClassNames = classNames.replace(/\s+/g, "");
+          const individualClassNames = normalizedClassNames
+            .split(",")
+            .map((className) => className.trim());
+
+          // eslint-disable-next-line no-loop-func
+          individualClassNames.forEach((className) => {
+            optionLength++;
+            const strippedClassName = className.startsWith(".")
+              ? className.slice(1)
+              : className;
+            updatedClassFillMap[strippedClassName] = classFillMap[classNames];
+            const elements = doc.getElementsByClassName(className);
+            for (let i = 0; i < elements.length; i++) {
+              const element = elements[i];
+              element.setAttribute("id", `option${optionLength + 1}`);
+            }
+          });
+        }
+      }
+
+      // Serialize the modified SVG document back to a string
+      const serializer = new XMLSerializer();
+      const modifiedSvgData = serializer.serializeToString(doc);
+
+      console.log(modifiedSvgData);
+
       const colorVariants = generateColorVariantsArray(
-        colorIdMap,
+        updatedClassFillMap,
         productDetails
       );
 
+      console.log(colorVariants, "colorVariants-_-_-_-");
       if (colorVariants) {
         const product: any = new admin.rest.resources.Metafield({
           session: session,
@@ -161,8 +203,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
           update: true,
         });
       }
-      const serializer = new XMLSerializer();
-      const updatedSvg = serializer.serializeToString(doc);
       const image: any = new admin.rest.resources.Metafield({
         session: session,
       });
@@ -170,7 +210,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       image.id = imageMetaField[0].id;
       image.value = JSON.stringify({
         name: "caractere_product_customizer_image",
-        data: updatedSvg,
+        data: modifiedSvgData,
       });
       image.type = "single_line_text_field";
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
