@@ -151,6 +151,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
       // Filter out unique fill colors
       fillColors = Array.from(new Set(fillColors));
 
+      console.log(classFillMap, "classFillMap---------------");
+
       // Iterate through each class in classFillMap
       for (const classNames in classFillMap) {
         if (classFillMap.hasOwnProperty(classNames)) {
@@ -166,11 +168,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
               ? className.slice(1)
               : className;
             updatedClassFillMap[strippedClassName] = classFillMap[classNames];
-            const elements = doc.getElementsByClassName(className);
-            for (let i = 0; i < elements.length; i++) {
-              const element = elements[i];
-              element.setAttribute("id", `option${optionLength + 1}`);
-            }
+
+            const elements = doc.getElementsByClassName(strippedClassName);
+            const elementsArray = Array.from(elements);
+            elementsArray.forEach((element, index) => {
+              element.setAttribute("id", `option${optionLength}`);
+              element.setAttribute(
+                "fill",
+                updatedClassFillMap[strippedClassName]
+              );
+              element.removeAttribute("class");
+            });
           });
         }
       }
@@ -179,14 +187,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
       const serializer = new XMLSerializer();
       const modifiedSvgData = serializer.serializeToString(doc);
 
-      console.log(modifiedSvgData);
+      // console.log(modifiedSvgData);
 
       const colorVariants = generateColorVariantsArray(
         updatedClassFillMap,
         productDetails
       );
-
-      console.log(colorVariants, "colorVariants-_-_-_-");
       if (colorVariants) {
         const product: any = new admin.rest.resources.Metafield({
           session: session,
