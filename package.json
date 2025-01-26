@@ -55,6 +55,10 @@
     "prisma": "^6.2.1",
     "typescript": "^5.2.2"
   },
+  "engines": {
+    "node": "20.18.0",
+    "npm": "11.0.0"
+  },
   "workspaces": [
     "extensions/*"
   ],
