@@ -1,0 +1,89 @@
+{% style %}
+  .title {
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .desc {
+    font-size: 16px;
+  }
+  .color_list {
+    list-style: none;
+    padding: 0;
+    width: 400px;
+  }
+  .color_list li {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 10px;
+    display: inline-block;
+    cursor: pointer;
+  }
+{% endstyle %}
+
+<variant-selector data-url="{{ product.url }}" data-section="{{ section.id }}">
+
+  {% assign product_customizer_string = product.metafields.caractere.product_customizer %}
+
+  {% for option in product_customizer_string.data %}
+    {% assign color_options = option.option | split: ', ' %}
+    <div>
+      <p>{{ option.label }}</p>
+      {% for color in color_options %}
+        <div style="display: inline-block; width: 20px; height: 20px; background-color: {{ color }};"></div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+
+  <div id="caractere_customizer"></div>
+</variant-selector>
+
+<script>
+  var customizerData = {{ product_customizer_string }};
+
+  function createColorButtons(colorString, container) {
+    var colors = colorString.split(', ');
+
+    colors.forEach(function(color) {
+      var colorButton = document.createElement('button');
+      colorButton.type = 'button';
+      colorButton.style.backgroundColor = color;
+      colorButton.className = 'w-6 h-6 rounded-full variant-option-button';
+      colorButton.setAttribute('data-option-name', '{{ option.name | escape }}');
+      colorButton.setAttribute('data-option-value', '{{ value | escape }}');
+
+      container.appendChild(colorButton);
+    });
+  }
+  // Function to create customizer block
+  function createCustomizerBlock(item) {
+    var customizerBlock = document.createElement('div');
+    customizerBlock.classList.add('customizer-block');
+
+    var title = document.createElement('h3');
+    title.innerText = item.label;
+    customizerBlock.appendChild(title);
+
+    var colorList = document.createElement('div');
+    colorList.classList.add('color-list');
+    customizerBlock.appendChild(colorList);
+
+    createColorButtons(item.option, colorList);
+
+    document.getElementById('caractere_customizer').appendChild(customizerBlock);
+  }
+
+  // Display customizer blocks for each data item
+  customizerData.data.forEach(function(item) {
+    createCustomizerBlock(item);
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Product Customizer",
+  "target": "section",
+  "stylesheet": "style.css",
+  "templates": ["product"]
+}
+{% endschema %}

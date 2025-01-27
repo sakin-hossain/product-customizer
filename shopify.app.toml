@@ -2,7 +2,7 @@
 
 name = "Product Customizer"
 client_id = "9a92ac27062831533623257a086effb5"
-application_url = "https://results-rated-publicly-took.trycloudflare.com"
+application_url = "https://enabling-adventure-impose-jesse.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,9 +11,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://results-rated-publicly-took.trycloudflare.com/auth/callback",
-  "https://results-rated-publicly-took.trycloudflare.com/auth/shopify/callback",
-  "https://results-rated-publicly-took.trycloudflare.com/api/auth/callback"
+  "https://enabling-adventure-impose-jesse.trycloudflare.com/auth/callback",
+  "https://enabling-adventure-impose-jesse.trycloudflare.com/auth/shopify/callback",
+  "https://enabling-adventure-impose-jesse.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
