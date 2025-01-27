@@ -1,19 +1,28 @@
 FROM node:18-alpine
 
+# Install git and any other necessary dependencies
+RUN apk add --no-cache git
+
+# Expose application port
 EXPOSE 3000
 
+# Set the working directory
 WORKDIR /app
+
+# Copy application files
 COPY . .
 
+# Set environment variables
 ENV NODE_ENV=production
 
+# Install dependencies
 RUN npm install
-# Remove CLI packages since we don't need them in production by default.
-# Remove this line if you want to run CLI commands in your container.
-RUN npm remove @shopify/app @shopify/cli
+
+# Build the application
 RUN npm run build
 
-# You'll probably want to remove this in production, it's here to make it easier to test things!
+# Optional: Remove SQLite database if it's not needed
 RUN rm -f prisma/dev.sqlite
 
+# Start the application
 CMD ["npm", "run", "docker-start"]
